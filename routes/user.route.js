@@ -4,8 +4,9 @@ const { UserModal } = require('../modals/user.modal');
 const jwt = require('jsonwebtoken');
 const UserRouter = express.Router();
 
-UserRouter.get("/", (req, res) => {
-    res.status(200).json(res);
+UserRouter.get("/", async (req, res) => {
+    let data = await UserModal.find({});
+    res.status(200).json(data);
 })
 
 UserRouter.post("/signup", async (req, res) => {
