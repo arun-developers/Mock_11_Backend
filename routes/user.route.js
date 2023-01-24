@@ -11,7 +11,7 @@ UserRouter.get("/", async (req, res) => {
 
 UserRouter.post("/signup", async (req, res) => {
     console.log(req.body)
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
     const userPresent = await UserModal.findOne({ email })
     if (userPresent?.email) {
         res.send("Try loggin in, already exist")
@@ -19,7 +19,7 @@ UserRouter.post("/signup", async (req, res) => {
     else {
         try {
             bcrypt.hash(password, 4, async function (err, hash) {
-                const user = new UserModal({ email, password: hash })
+                const user = new UserModal({ name, email, password: hash })
                 await user.save()
                 res.send("Sign up successfull")
             });
@@ -35,23 +35,38 @@ UserRouter.post("/signup", async (req, res) => {
 UserRouter.post("/login", async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await UserModal.find({ email })
-
-        if (user.length > 0) {
+        const user = await UserModal.find({ email });
+        if (email === "@masaischool.com") {
             const hashed_password = user[0].password;
             bcrypt.compare(password, hashed_password, function (err, result) {
                 if (result) {
                     const token = jwt.sign({ "userID": user[0]._id }, 'hush');
-                    res.send({ "msg": "Login successfull", "token": token })
+                    res.send({ "msg": "Admin Login successfull", "token": token })
                 }
                 else {
-                    res.send("Login failed")
+                    res.send("Admin Login failed")
                 }
             })
         }
         else {
-            res.send("Login failed")
+            if (user.length > 0) {
+                const hashed_password = user[0].password;
+                bcrypt.compare(password, hashed_password, function (err, result) {
+                    if (result) {
+                        const token = jwt.sign({ "userID": user[0]._id }, 'hush');
+                        res.send({ "msg": "User Login successfull", "token": token })
+                    }
+                    else {
+                        res.send("User Login failed")
+                    }
+                })
+            }
+            else {
+                res.send("Login failed")
+            }
         }
+
+
     }
     catch {
         res.send("Something went wrong, please try again later")
